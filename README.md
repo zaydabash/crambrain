@@ -2,6 +2,8 @@
 
 **Transform your study materials into an intelligent learning companion**
 
+![CramBrain Interface](./public/crambrain.png)
+
 CramBrain revolutionizes how students interact with their study materials. Upload your PDFs, ask questions, and get instant answers with precise page citations. Generate custom quizzes and master your content through intelligent spaced repetition.
 
 ## Why CramBrain?
