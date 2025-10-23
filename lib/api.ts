@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // API Base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cram-brain-api-v1.onrender.com'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://crambrain-api-v2.onrender.com'
 
 // Schemas
 export const PresignRequestSchema = z.object({
