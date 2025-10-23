@@ -128,20 +128,40 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
     
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    })
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      })
 
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`API Error: ${response.status} ${error}`)
+      if (!response.ok) {
+        const error = await response.text()
+        console.error(`API Error ${response.status}:`, error)
+        
+        // Provide user-friendly error messages
+        if (response.status === 500) {
+          if (endpoint.includes('/presign')) {
+            throw new Error('Upload service is temporarily unavailable. Please try again later.')
+          } else if (endpoint.includes('/ask')) {
+            throw new Error('Question processing is temporarily unavailable. Please try again later.')
+          } else {
+            throw new Error('Service temporarily unavailable. Please try again later.')
+          }
+        }
+        
+        throw new Error(`API Error: ${response.status} ${error}`)
+      }
+
+      return response.json()
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Unable to connect to the server. Please check your internet connection.')
+      }
+      throw error
     }
-
-    return response.json()
   }
 
   // Health check
