@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,17 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const xhrRef = useRef<XMLHttpRequest | null>(null)
+
+  const handleCancel = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort()
+      xhrRef.current = null
+      setUploading(false)
+      setUploadProgress(0)
+      onError('Upload canceled')
+    }
+  }
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -33,41 +44,71 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
 
     try {
       // Step 1: Get presigned URL
-      setUploadProgress(20)
+      setUploadProgress(10)
       const presignResponse = await apiClient.presignUpload(file.name)
 
-      // Step 2: Upload to S3
-      setUploadProgress(40)
-      const uploadResponse = await fetch(presignResponse.upload_url, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': 'application/pdf',
-        },
-      })
+      // Step 2: Upload to S3 using XHR for progress tracking
+      const xhr = new XMLHttpRequest()
+      xhrRef.current = xhr
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to storage')
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          // Map 10% -> 60% for actual upload (S3/B2 PUT)
+          const progress = 10 + Math.round((event.loaded / event.total) * 50)
+          setUploadProgress(progress)
+        }
       }
 
-      // Step 3: Ingest document
-      setUploadProgress(60)
-      const ingestResponse = await apiClient.ingestDocument(
-        presignResponse.file_url,
-        file.name
-      )
+      xhr.onerror = () => {
+        setUploading(false)
+        setUploadProgress(0)
+        onError('Network error during upload')
+        xhrRef.current = null
+      }
 
-      setUploadProgress(100)
-      onUploadComplete(ingestResponse.doc_id, file.name)
+      xhr.onload = async () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Upload successful, now ingest
+          setUploadProgress(70)
+          
+          try {
+            const ingestResponse = await apiClient.ingestDocument(
+              presignResponse.file_url,
+              file.name
+            )
+
+            setUploadProgress(100)
+            onUploadComplete(ingestResponse.doc_id, file.name)
+          } catch (error) {
+            console.error('Ingest failed:', error)
+            onError(error instanceof Error ? error.message : 'Failed to process document')
+          } finally {
+            setUploading(false)
+            setUploadProgress(0)
+            xhrRef.current = null
+          }
+        } else {
+          setUploading(false)
+          setUploadProgress(0)
+          onError(`Upload failed: ${xhr.status}`)
+          xhrRef.current = null
+        }
+      }
+
+      // Start the PUT request
+      xhr.open('PUT', presignResponse.upload_url, true)
+      xhr.setRequestHeader('Content-Type', 'application/pdf')
+      xhr.send(file)
       
     } catch (error) {
       console.error('Upload failed:', error)
       onError(error instanceof Error ? error.message : 'Upload failed')
-    } finally {
       setUploading(false)
       setUploadProgress(0)
+      xhrRef.current = null
     }
-  }, [onUploadComplete, onError])
+  }, [onUploadComplete, onError, xhrRef])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -135,10 +176,20 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
               </div>
 
               {uploading && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Processing document...</span>
-                    <span>{uploadProgress}%</span>
+                    <span>Uploading document...</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{uploadProgress}%</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
                     <div
@@ -146,13 +197,6 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                </div>
-              )}
-
-              {uploading && (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  <span>Uploading and processing your document...</span>
                 </div>
               )}
             </div>
