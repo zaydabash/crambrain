@@ -169,11 +169,11 @@ class ApiClient {
     return this.request<{ status: string; time: string }>('/v1/health')
   }
 
-  // Presign upload
+  // Presign upload - use GET to avoid CORS preflight
   async presignUpload(filename: string): Promise<PresignResponse> {
-    const response = await this.request<PresignResponse>('/v1/presign', {
-      method: 'POST',
-      body: JSON.stringify({ filename }),
+    const encodedFilename = encodeURIComponent(filename)
+    const response = await this.request<PresignResponse>(`/v1/presign?filename=${encodedFilename}`, {
+      method: 'GET',
     })
     return PresignResponseSchema.parse(response)
   }
