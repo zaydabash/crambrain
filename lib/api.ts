@@ -169,7 +169,55 @@ class ApiClient {
     return this.request<{ status: string; time: string }>('/v1/health')
   }
 
-  // Presign upload - try GET first, fallback to POST
+  // Direct upload - uploads file to backend, which handles B2 upload and ingestion
+  // Returns the XHR instance for cancellation support
+  uploadFile(file: File, onProgress?: (progress: number) => void): Promise<IngestResponse> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Track upload progress
+      if (onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100)
+            onProgress(progress)
+          }
+        }
+      }
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during upload'))
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            resolve(IngestResponseSchema.parse(response))
+          } catch (error) {
+            reject(new Error('Failed to parse upload response'))
+          }
+        } else {
+          try {
+            const error = JSON.parse(xhr.responseText)
+            reject(new Error(error.detail || `Upload failed: ${xhr.status}`))
+          } catch {
+            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`))
+          }
+        }
+      }
+
+      xhr.open('POST', `${this.baseUrl}/v1/upload`)
+      xhr.send(formData)
+      
+      // Store XHR for potential cancellation (component can access via ref)
+      ;(this as any)._currentUploadXHR = xhr
+    })
+  }
+
+  // Presign upload - try GET first, fallback to POST (kept for backwards compatibility)
   async presignUpload(filename: string): Promise<PresignResponse> {
     try {
       // Try GET first (no CORS preflight)

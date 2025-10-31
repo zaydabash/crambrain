@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn, formatFileSize, isValidPdf } from '@/lib/utils'
 import { apiClient } from '@/lib/api'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://crambrain-api-v2.onrender.com'
+
 interface FileDropProps {
   onUploadComplete: (docId: string, filename: string) => void
   onError: (error: string) => void
@@ -23,10 +25,10 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
     if (xhrRef.current) {
       xhrRef.current.abort()
       xhrRef.current = null
-      setUploading(false)
-      setUploadProgress(0)
-      onError('Upload canceled')
     }
+    setUploading(false)
+    setUploadProgress(0)
+    onError('Upload canceled')
   }
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -43,87 +45,61 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
     setUploadProgress(0)
 
     try {
-      // Step 1: Get presigned URL
-      setUploadProgress(10)
-      const presignResponse = await apiClient.presignUpload(file.name)
-
-      // Step 2: Upload to S3 using XHR for progress tracking
+      // Direct upload to backend - handles B2 upload and ingestion in one step
+      console.log('Starting upload for file:', file.name, file.size, 'bytes')
+      
+      // Use XHR directly to get reference for cancellation
+      const formData = new FormData()
+      formData.append('file', file)
+      
       const xhr = new XMLHttpRequest()
       xhrRef.current = xhr
-
+      
       // Track upload progress
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          // Map 10% -> 60% for actual upload (S3/B2 PUT)
-          const progress = 10 + Math.round((event.loaded / event.total) * 50)
+          const progress = Math.round((event.loaded / event.total) * 100)
           setUploadProgress(progress)
         }
       }
-
-      xhr.onerror = (event) => {
-        console.error('XHR upload error:', {
-          status: xhr.status,
-          statusText: xhr.statusText,
-          responseText: xhr.responseText,
-          readyState: xhr.readyState,
-          uploadUrl: presignResponse.upload_url.substring(0, 100) + '...'
-        })
-        
-        let errorMessage = 'Network error during upload'
-        if (xhr.status === 0) {
-          errorMessage = 'Upload failed: Connection error. Please check your internet connection or CORS configuration.'
-        } else if (xhr.status === 403) {
-          errorMessage = 'Upload failed: Access denied. The upload URL may have expired or is invalid.'
-        } else if (xhr.status >= 400) {
-          errorMessage = `Upload failed: ${xhr.status} ${xhr.statusText || 'Unknown error'}`
-        }
-        
+      
+      xhr.onerror = () => {
         setUploading(false)
         setUploadProgress(0)
-        onError(errorMessage)
+        onError('Network error during upload')
         xhrRef.current = null
       }
-
-      xhr.onload = async () => {
+      
+      xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Upload successful, now ingest
-          setUploadProgress(70)
-          
           try {
-            const ingestResponse = await apiClient.ingestDocument(
-              presignResponse.file_url,
-              file.name
-            )
-
+            const response = JSON.parse(xhr.responseText)
             setUploadProgress(100)
-            onUploadComplete(ingestResponse.doc_id, file.name)
+            onUploadComplete(response.doc_id, file.name)
           } catch (error) {
-            console.error('Ingest failed:', error)
-            onError(error instanceof Error ? error.message : 'Failed to process document')
+            console.error('Failed to parse response:', error)
+            onError('Failed to process upload response')
           } finally {
             setUploading(false)
             setUploadProgress(0)
             xhrRef.current = null
           }
         } else {
-          setUploading(false)
-          setUploadProgress(0)
-          onError(`Upload failed: ${xhr.status}`)
-          xhrRef.current = null
+          try {
+            const error = JSON.parse(xhr.responseText)
+            onError(error.detail || `Upload failed: ${xhr.status}`)
+          } catch {
+            onError(`Upload failed: ${xhr.status} ${xhr.statusText}`)
+          } finally {
+            setUploading(false)
+            setUploadProgress(0)
+            xhrRef.current = null
+          }
         }
       }
-
-      // Start the PUT request
-      xhr.open('PUT', presignResponse.upload_url, true)
       
-      // Set Content-Type header (must match what was signed in presigned URL)
-      xhr.setRequestHeader('Content-Type', 'application/pdf')
-      
-      // Log for debugging
-      console.log('Starting upload to:', presignResponse.upload_url.substring(0, 100) + '...')
-      console.log('File size:', file.size, 'bytes')
-      
-      xhr.send(file)
+      xhr.open('POST', `${API_BASE_URL}/v1/upload`)
+      xhr.send(formData)
       
     } catch (error) {
       console.error('Upload failed:', error)
