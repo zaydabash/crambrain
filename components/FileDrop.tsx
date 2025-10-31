@@ -60,10 +60,27 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
         }
       }
 
-      xhr.onerror = () => {
+      xhr.onerror = (event) => {
+        console.error('XHR upload error:', {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          responseText: xhr.responseText,
+          readyState: xhr.readyState,
+          uploadUrl: presignResponse.upload_url.substring(0, 100) + '...'
+        })
+        
+        let errorMessage = 'Network error during upload'
+        if (xhr.status === 0) {
+          errorMessage = 'Upload failed: Connection error. Please check your internet connection or CORS configuration.'
+        } else if (xhr.status === 403) {
+          errorMessage = 'Upload failed: Access denied. The upload URL may have expired or is invalid.'
+        } else if (xhr.status >= 400) {
+          errorMessage = `Upload failed: ${xhr.status} ${xhr.statusText || 'Unknown error'}`
+        }
+        
         setUploading(false)
         setUploadProgress(0)
-        onError('Network error during upload')
+        onError(errorMessage)
         xhrRef.current = null
       }
 
@@ -98,7 +115,14 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
 
       // Start the PUT request
       xhr.open('PUT', presignResponse.upload_url, true)
+      
+      // Set Content-Type header (must match what was signed in presigned URL)
       xhr.setRequestHeader('Content-Type', 'application/pdf')
+      
+      // Log for debugging
+      console.log('Starting upload to:', presignResponse.upload_url.substring(0, 100) + '...')
+      console.log('File size:', file.size, 'bytes')
+      
       xhr.send(file)
       
     } catch (error) {
