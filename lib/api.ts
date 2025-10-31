@@ -169,13 +169,26 @@ class ApiClient {
     return this.request<{ status: string; time: string }>('/v1/health')
   }
 
-  // Presign upload - use GET to avoid CORS preflight
+  // Presign upload - try GET first, fallback to POST
   async presignUpload(filename: string): Promise<PresignResponse> {
-    const encodedFilename = encodeURIComponent(filename)
-    const response = await this.request<PresignResponse>(`/v1/presign?filename=${encodedFilename}`, {
-      method: 'GET',
-    })
-    return PresignResponseSchema.parse(response)
+    try {
+      // Try GET first (no CORS preflight)
+      const encodedFilename = encodeURIComponent(filename)
+      const response = await this.request<PresignResponse>(`/v1/presign?filename=${encodedFilename}`, {
+        method: 'GET',
+      })
+      return PresignResponseSchema.parse(response)
+    } catch (error: any) {
+      // Fallback to POST if GET is not available yet
+      if (error.message?.includes('Method Not Allowed') || error.message?.includes('405')) {
+        const response = await this.request<PresignResponse>('/v1/presign', {
+          method: 'POST',
+          body: JSON.stringify({ filename }),
+        })
+        return PresignResponseSchema.parse(response)
+      }
+      throw error
+    }
   }
 
   // Ingest document
