@@ -1,0 +1,55 @@
+# Test coverage
+coverage/
+*.cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env*.local
+.env.*.local
+
+# Secrets
+/secrets/
+*.key
+*.pem
+*.cert
+*.crt
+credentials.json
+service-account.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+test-results/
+playwright-report/
+

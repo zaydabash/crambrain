@@ -1,0 +1,57 @@
+### CramBrain API Smoke Tests
+### Run these tests against your deployed API
+
+@baseUrl = https://your-render-app.onrender.com
+@localUrl = http://localhost:8000
+
+### Health Check
+GET {{baseUrl}}/v1/health
+
+### Get Presigned Upload URL
+POST {{baseUrl}}/v1/presign
+Content-Type: application/json
+
+{
+  "filename": "test.pdf"
+}
+
+### Ingest Document (replace with actual file_url from presign response)
+POST {{baseUrl}}/v1/ingest
+Content-Type: application/json
+
+{
+  "file_url": "https://your-bucket.your-domain.com/docs/test.pdf",
+  "original_name": "test.pdf"
+}
+
+### Ask Question (replace with actual doc_id from ingest response)
+POST {{baseUrl}}/v1/ask
+Content-Type: application/json
+
+{
+  "query": "What is this document about?",
+  "doc_id": "your-doc-id-here",
+  "top_k": 6
+}
+
+### Generate Quiz (replace with actual doc_id)
+POST {{baseUrl}}/v1/quiz
+Content-Type: application/json
+
+{
+  "doc_id": "your-doc-id-here",
+  "topic": "general content",
+  "n": 10
+}
+
+### List Documents
+GET {{baseUrl}}/v1/docs
+
+### Get Document Details (replace with actual doc_id)
+GET {{baseUrl}}/v1/docs/your-doc-id-here
+
+### Search Documents
+GET {{baseUrl}}/v1/search?q=test&limit=10
+
+### Test with Local API
+GET {{localUrl}}/v1/health
