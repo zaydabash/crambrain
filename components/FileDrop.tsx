@@ -139,7 +139,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
                 uploading && "pointer-events-none opacity-50"
               )}
             >
-              <input {...getInputProps()} />
+              <input data-testid="file-input" aria-label="file input" {...getInputProps()} />
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">

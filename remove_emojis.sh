@@ -52,7 +52,7 @@ EMOJI_REPLACEMENTS=(
 )
 
 # Process files in batches
-find apps/web/node_modules -name "*.md" -o -name "*.js" -o -name "*.mjs" | while read -r file; do
+find node_modules -name "*.md" -o -name "*.js" -o -name "*.mjs" | while read -r file; do
     if [ -f "$file" ]; then
         # Apply all emoji replacements
         for replacement in "${EMOJI_REPLACEMENTS[@]}"; do

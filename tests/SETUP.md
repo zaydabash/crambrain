@@ -29,7 +29,7 @@
 
 1. **Install dependencies:**
    ```bash
-   cd crambrain-web-standalone
+   # From project root
    npm install
    ```
 
@@ -53,16 +53,17 @@
 - ✅ `pytest.ini` - Pytest configuration
 
 ### Frontend
-- ✅ `crambrain-web-standalone/__tests__/lib/utils.test.ts` - Utility functions
-- ✅ `crambrain-web-standalone/__tests__/components/Button.test.tsx` - Button component
-- ✅ `crambrain-web-standalone/jest.config.js` - Jest configuration
-- ✅ `crambrain-web-standalone/jest.setup.js` - Jest setup
+- ✅ `tests/frontend/utils.test.ts` - Utility functions
+- ✅ `tests/frontend/components/Button.test.tsx` - Button component
+- ✅ `tests/frontend/components/FileDrop.test.tsx` - FileDrop component
+- ✅ `jest.config.js` - Jest configuration (root)
+- ✅ `jest.setup.js` - Jest setup (root)
 
 ## Next Steps
 
 1. **Install frontend test dependencies:**
    ```bash
-   cd crambrain-web-standalone
+   # From project root
    npm install
    ```
 
@@ -73,7 +74,7 @@
 
 3. **Run frontend tests to verify setup:**
    ```bash
-   cd crambrain-web-standalone
+   # From project root
    npm test
    ```
 
@@ -91,7 +92,7 @@ def test_my_function():
 
 ### Frontend Test Example
 ```typescript
-// crambrain-web-standalone/__tests__/components/MyComponent.test.tsx
+// tests/frontend/components/MyComponent.test.tsx
 import { render, screen } from '@testing-library/react'
 import { MyComponent } from '@/components/MyComponent'
 

@@ -26,7 +26,7 @@ After deployment, verify these features work:
 
 3. **Deploy Web to Vercel:**
    - Go to [vercel.com](https://vercel.com) → Import Project
-   - Select GitHub repo → Choose `apps/web` folder
+   - Select GitHub repo → Choose root directory (not apps/web)
    - Set `NEXT_PUBLIC_API_BASE_URL` to your Render API URL
    - Click Deploy
 
@@ -40,7 +40,6 @@ render services create --name crambrain-api --type web --dockerfile apps/api/Doc
 
 # Deploy Web to Vercel
 npm install -g vercel
-cd apps/web
 vercel --prod
 ```
 
@@ -60,7 +59,7 @@ docker-compose -f docker-compose.dev.yml up
 
 # Or start individually
 cd apps/api && pip install -r requirements.txt && uvicorn src.main:app --reload
-cd apps/web && npm install && npm run dev
+npm install && npm run dev
 ```
 
 ## Architecture
@@ -77,18 +76,15 @@ cd apps/web && npm install && npm run dev
 
 ```
 cram-brain/
+├── app/                     # Next.js App Router (frontend)
+│   ├── (marketing)/page.tsx
+│   ├── upload/page.tsx
+│   ├── chat/page.tsx
+│   ├── docs/[docId]/page.tsx
+│   └── quiz/page.tsx
+├── components/              # React components
+├── lib/                     # Frontend utilities
 ├── apps/
-│   ├── web/                 # Next.js on Vercel
-│   │   ├── app/
-│   │   │   ├── (marketing)/page.tsx
-│   │   │   ├── upload/page.tsx
-│   │   │   ├── chat/page.tsx
-│   │   │   ├── docs/[docId]/page.tsx
-│   │   │   ├── quiz/page.tsx
-│   │   │   └── api/health/route.ts
-│   │   ├── components/
-│   │   ├── lib/
-│   │   └── public/
 │   └── api/                 # FastAPI on Render
 │       ├── src/
 │       │   ├── main.py
@@ -183,7 +179,7 @@ NEXT_PUBLIC_API_BASE_URL=https://your-render-app.onrender.com
 
 #### Deploy Web to Vercel:
 1. Go to [vercel.com](https://vercel.com) → Import Project
-2. Select GitHub repo → Choose `apps/web` folder
+2. Select GitHub repo → Choose root directory (not apps/web)
 3. Set environment variable: `NEXT_PUBLIC_API_BASE_URL=https://your-render-app.onrender.com`
 4. Click Deploy
 
@@ -206,8 +202,7 @@ render services create --name crambrain-api --type web --dockerfile apps/api/Doc
 # Install Vercel CLI
 npm install -g vercel
 
-# Deploy
-cd apps/web
+# Deploy (from root directory)
 vercel --prod
 ```
 

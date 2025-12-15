@@ -25,10 +25,11 @@
 ### Frontend Tests (TypeScript/Jest)
 
 **Files Created:**
-- `crambrain-web-standalone/__tests__/lib/utils.test.ts` - Utility function tests
-- `crambrain-web-standalone/__tests__/components/Button.test.tsx` - Button component tests
-- `crambrain-web-standalone/jest.config.js` - Jest configuration
-- `crambrain-web-standalone/jest.setup.js` - Jest setup and mocks
+- `tests/frontend/utils.test.ts` - Utility function tests
+- `tests/frontend/components/Button.test.tsx` - Button component tests
+- `tests/frontend/components/FileDrop.test.tsx` - FileDrop component tests
+- `jest.config.js` - Jest configuration (root)
+- `jest.setup.js` - Jest setup and mocks (root)
 
 **Test Coverage:**
 - ✅ Utility functions (formatFileSize, formatDate, extractPageNumbers, etc.)
@@ -61,19 +62,19 @@ cram-brain/
 │   │   ├── test_utils_id.py
 │   │   ├── test_models_types.py
 │   │   └── test_api_endpoints.py
+│   ├── frontend/
+│   │   ├── __init__.ts
+│   │   ├── utils.test.ts
+│   │   └── components/
+│   │       ├── Button.test.tsx
+│   │       └── FileDrop.test.tsx
 │   ├── README.md
 │   ├── SETUP.md
 │   └── SUMMARY.md
 ├── pytest.ini
-├── crambrain-web-standalone/
-│   ├── __tests__/
-│   │   ├── lib/
-│   │   │   └── utils.test.ts
-│   │   └── components/
-│   │       └── Button.test.tsx
-│   ├── jest.config.js
-│   ├── jest.setup.js
-│   └── package.json (updated)
+├── jest.config.js
+├── jest.setup.js
+├── package.json (updated)
 └── apps/api/
     └── requirements.txt (updated)
 ```
@@ -91,7 +92,7 @@ pytest --cov=apps.api.src --cov-report=html
 
 ### Run Frontend Tests
 ```bash
-cd crambrain-web-standalone
+# From project root
 npm install  # Install new test dependencies
 npm test
 ```
@@ -126,8 +127,7 @@ npm test
    cd apps/api
    pip install -r requirements.txt
    
-   # Frontend
-   cd crambrain-web-standalone
+   # Frontend (from root)
    npm install
    ```
 
@@ -136,8 +136,7 @@ npm test
    # Backend
    pytest tests/backend/test_utils_id.py -v
    
-   # Frontend
-   cd crambrain-web-standalone
+   # Frontend (from root)
    npm test
    ```
 
@@ -170,9 +169,8 @@ To verify the test setup is working:
 # Backend
 pytest tests/backend/test_utils_id.py::TestULIDGeneration::test_generate_ulid_returns_string -v
 
-# Frontend
-cd crambrain-web-standalone
-npm test -- __tests__/lib/utils.test.ts
+# Frontend (from root)
+npm test -- tests/frontend/utils.test.ts
 ```
 
 Both should pass without errors!

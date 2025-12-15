@@ -10,14 +10,12 @@ tests/
 │   ├── test_utils_id.py
 │   ├── test_models_types.py
 │   └── test_api_endpoints.py
+├── frontend/          # Frontend unit tests (TypeScript/Jest)
+│   ├── components/
+│   │   ├── Button.test.tsx
+│   │   └── FileDrop.test.tsx
+│   └── utils.test.ts
 └── conftest.py        # Pytest configuration and fixtures
-
-crambrain-web-standalone/
-└── __tests__/         # Frontend unit tests (TypeScript/Jest)
-    ├── components/
-    │   └── Button.test.tsx
-    └── lib/
-        └── utils.test.ts
 ```
 
 ## Backend Tests
@@ -54,8 +52,7 @@ pytest -v
 ### Setup
 
 ```bash
-# Install dependencies
-cd crambrain-web-standalone
+# Install dependencies (from project root)
 npm install
 
 # Run tests
