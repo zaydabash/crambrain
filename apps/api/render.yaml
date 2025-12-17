@@ -1,0 +1,50 @@
+services:
+  api:
+    name: crambrain-api
+    type: web
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    envVars:
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 8000
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: CHROMA_PERSIST_DIR
+        value: /data/chroma
+      - key: CHROMA_COLLECTION
+        value: crambrain
+      - key: ENABLE_TESSERACT
+        value: "true"
+      - key: TESSERACT_CMD
+        value: /usr/bin/tesseract
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: MAX_FILE_MB
+        value: "50"
+      - key: ALLOWED_MIME
+        value: "application/pdf,image/png,image/jpeg"
+      - key: RATE_LIMIT_REQUESTS
+        value: "100"
+      - key: RATE_LIMIT_WINDOW
+        value: "3600"
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_REGION
+        value: "us-east-005"
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_PUBLIC_BASE_URL
+        sync: false
+    disk:
+      name: crambrain-data
+      mountPath: /data
+      sizeGB: 1
+    healthCheckPath: /v1/health
+    autoDeploy: true

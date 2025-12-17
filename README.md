@@ -52,14 +52,17 @@ cd cram-brain
 
 # Copy environment file
 cp env.example .env
-# Edit .env with your values
+# Edit .env with your values (REQUIRED)
 
-# Start with Docker
-docker-compose -f docker-compose.dev.yml up
+# Install dependencies
+make install
 
-# Or start individually
-cd apps/api && pip install -r requirements.txt && uvicorn src.main:app --reload
-npm install && npm run dev
+# Start API (Terminal 1)
+make dev-api
+
+# Start Web (Terminal 2)
+make dev-web
+
 ```
 
 ## Architecture
@@ -89,6 +92,10 @@ cram-brain/
 │       ├── src/
 │       │   ├── main.py
 │       │   ├── routers/
+│       │   │   ├── chat.py
+│       │   │   ├── documents.py
+│       │   │   ├── ingest.py
+│       │   │   └── quiz.py
 │       │   ├── core/
 │       │   ├── rag/
 │       │   ├── models/
@@ -99,6 +106,7 @@ cram-brain/
 ├── scripts/
 ├── docker-compose.dev.yml
 ├── .env.example
+├── Makefile
 └── README.md
 ```
 

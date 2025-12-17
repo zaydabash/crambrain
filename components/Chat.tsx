@@ -94,7 +94,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
             <span>Ask Questions</span>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="flex-1 flex flex-col p-0">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -103,7 +103,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Start a conversation by asking a question about your documents.</p>
                 <p className="text-sm mt-2">
-                  Try: "What are the main topics covered?" or "Explain the key concepts"
+                  Try: &quot;What are the main topics covered?&quot; or &quot;Explain the key concepts&quot;
                 </p>
               </div>
             ) : (
@@ -129,7 +129,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
                         __html: highlightCitations(message.content)
                       }}
                     />
-                    
+
                     {message.citations && message.citations.length > 0 && (
                       <div className="mt-3 space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">
@@ -144,7 +144,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
                         ))}
                       </div>
                     )}
-                    
+
                     <div className="text-xs text-muted-foreground mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </div>
@@ -152,7 +152,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
                 </div>
               ))
             )}
-            
+
             {loading && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2 flex items-center space-x-2">
@@ -163,7 +163,7 @@ export function Chat({ docId, onCitationClick }: ChatProps) {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 

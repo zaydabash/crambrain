@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, MessageSquare, FileText, BookOpen } from 'lucide-react'
 import { apiClient, type Citation as CitationType } from '@/lib/api'
 import { toast } from 'sonner'
+import { CHAT_CONSTANTS } from '@/lib/constants'
 
 export default function ChatPage() {
   const router = useRouter()
@@ -78,32 +79,31 @@ export default function ChatPage() {
                     variant="outline"
                     className="w-full justify-start"
                     onClick={() => {
-                      // This would trigger a question in the chat
-                      toast.info('Try asking: "What are the main topics covered?"')
+                      toast.info(CHAT_CONSTANTS.QUICK_ACTIONS.ASK_TOPICS.TOAST)
                     }}
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Ask about main topics
+                    {CHAT_CONSTANTS.QUICK_ACTIONS.ASK_TOPICS.LABEL}
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full justify-start"
                     onClick={() => {
-                      toast.info('Try asking: "Explain the key concepts"')
+                      toast.info(CHAT_CONSTANTS.QUICK_ACTIONS.EXPLAIN_CONCEPTS.TOAST)
                     }}
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Get explanations
+                    {CHAT_CONSTANTS.QUICK_ACTIONS.EXPLAIN_CONCEPTS.LABEL}
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full justify-start"
                     onClick={() => {
-                      toast.info('Try asking: "What are the important definitions?"')
+                      toast.info(CHAT_CONSTANTS.QUICK_ACTIONS.FIND_DEFINITIONS.TOAST)
                     }}
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Find definitions
+                    {CHAT_CONSTANTS.QUICK_ACTIONS.FIND_DEFINITIONS.LABEL}
                   </Button>
                 </CardContent>
               </Card>
@@ -117,24 +117,14 @@ export default function ChatPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Ask specific questions</p>
-                    <p className="text-muted-foreground">
-                      Instead of "explain this", try "what is the difference between X and Y?"
-                    </p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Use page citations</p>
-                    <p className="text-muted-foreground">
-                      Click on [p.N] citations to jump to the exact page
-                    </p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Generate quizzes</p>
-                    <p className="text-muted-foreground">
-                      Test your knowledge with AI-generated quiz questions
-                    </p>
-                  </div>
+                  {CHAT_CONSTANTS.TIPS.map((tip, index) => (
+                    <div key={index} className="text-sm">
+                      <p className="font-medium mb-1">{tip.TITLE}</p>
+                      <p className="text-muted-foreground">
+                        {tip.DESCRIPTION}
+                      </p>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 

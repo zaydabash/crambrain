@@ -3,26 +3,70 @@ Unit tests for API endpoints
 """
 
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, AsyncMock
+from fastapi.testclient import TestClient
 
-# Note: TestClient import may fail if FastAPI is not properly installed
-# This is expected in test environments where services aren't fully initialized
+# Import app and dependencies
 try:
-    from fastapi.testclient import TestClient
     from apps.api.src.main import app
+    from apps.api.src.core.deps import (
+        get_s3_service,
+        get_chroma_store,
+        get_embedding_service,
+        get_search_service,
+        get_answer_service,
+        get_quiz_service,
+        get_pdf_processor,
+        get_rate_limiter
+    )
     TESTCLIENT_AVAILABLE = True
 except ImportError:
     TESTCLIENT_AVAILABLE = False
-    TestClient = None
     app = None
 
-
 @pytest.fixture
-def client():
-    """Test client for API"""
+def client(
+    mock_s3_service,
+    mock_chroma_store,
+    mock_embedding_service
+):
+    """Test client for API with mocked dependencies"""
     if not TESTCLIENT_AVAILABLE:
         pytest.skip("TestClient not available - FastAPI may not be installed")
-    return TestClient(app)
+    
+    # Mock other services
+    mock_search_service = Mock()
+    mock_search_service.search = AsyncMock(return_value=[])
+    
+    mock_answer_service = Mock()
+    mock_answer_service.generate_answer = AsyncMock(return_value=Mock(answer="Test answer", grounding_score=0.9))
+    
+    mock_quiz_service = Mock()
+    mock_quiz_service.generate_quiz = AsyncMock(return_value=[])
+    mock_quiz_service.generate_cram_plan = AsyncMock(return_value={})
+    mock_quiz_service.generate_concept_graph = AsyncMock(return_value={})
+    
+    mock_pdf_processor = Mock()
+    mock_pdf_processor.process_pdf = AsyncMock(return_value=[])
+    
+    mock_rate_limiter = Mock()
+    mock_rate_limiter.check_rate_limit = AsyncMock()
+
+    # Override dependencies
+    app.dependency_overrides[get_s3_service] = lambda: mock_s3_service
+    app.dependency_overrides[get_chroma_store] = lambda: mock_chroma_store
+    app.dependency_overrides[get_embedding_service] = lambda: mock_embedding_service
+    app.dependency_overrides[get_search_service] = lambda: mock_search_service
+    app.dependency_overrides[get_answer_service] = lambda: mock_answer_service
+    app.dependency_overrides[get_quiz_service] = lambda: mock_quiz_service
+    app.dependency_overrides[get_pdf_processor] = lambda: mock_pdf_processor
+    app.dependency_overrides[get_rate_limiter] = lambda: mock_rate_limiter
+    
+    with TestClient(app) as c:
+        yield c
+    
+    # Clear overrides
+    app.dependency_overrides.clear()
 
 
 @pytest.mark.skipif(not TESTCLIENT_AVAILABLE, reason="TestClient not available")
@@ -42,25 +86,17 @@ class TestHealthEndpoint:
 class TestPresignEndpoint:
     """Tests for presign endpoint"""
     
-    @patch('apps.api.src.main.s3_service')
-    def test_presign_endpoint_post(self, mock_s3, client):
+    def test_presign_endpoint_post(self, client):
         """Test presign endpoint with POST"""
-        # Mock S3 service
-        mock_s3.generate_presigned_upload_url = AsyncMock(
-            return_value="https://s3.test.com/presigned-url"
-        )
-        mock_s3.get_public_url = Mock(
-            return_value="https://s3.test.com/file.pdf"
-        )
-        
         response = client.post(
             "/v1/presign",
-            json={"filename": "test.pdf", "content_type": "application/pdf"}
+            json={"filename": "test.pdf"}
         )
-        
-        # Note: This will fail if services aren't initialized, which is expected in test
-        # In a real test, you'd mock the services properly
-        assert response.status_code in [200, 503]  # 503 if services not available
+        assert response.status_code == 200
+        data = response.json()
+        assert "upload_url" in data
+        assert "file_url" in data
+        assert "file_id" in data
 
 
 @pytest.mark.skipif(not TESTCLIENT_AVAILABLE, reason="TestClient not available")
@@ -96,8 +132,10 @@ class TestQueryEndpoint:
             "/v1/ask",
             json={"query": "What is the main topic?", "top_k": 5}
         )
-        # Will return 503 if services not available, or 200/500 if services are available
-        assert response.status_code in [200, 500, 503]
+        assert response.status_code == 200
+        data = response.json()
+        assert "answer" in data
+        assert "citations" in data
 
 
 @pytest.mark.skipif(not TESTCLIENT_AVAILABLE, reason="TestClient not available")
@@ -106,6 +144,8 @@ class TestQuizEndpoint:
     
     def test_quiz_endpoint_valid_request(self, client):
         """Test quiz endpoint with valid request"""
+        # Mock search service to return results so quiz generation proceeds
+        # Note: In a real integration test, we'd need more setup, but here we just check flow
         response = client.post(
             "/v1/quiz",
             json={
@@ -114,8 +154,9 @@ class TestQuizEndpoint:
                 "n": 10
             }
         )
-        # Will return 503 if services not available, or error if services are available
-        assert response.status_code in [200, 404, 500, 503]
+        # It might return 404 if search returns empty (mock behavior), or 200 if we mock search results
+        # Given our mock_search_service returns [], it will likely be 404 as per quiz router logic
+        assert response.status_code in [200, 404]
     
     def test_quiz_endpoint_with_num_questions(self, client):
         """Test quiz endpoint with num_questions instead of n"""
@@ -126,5 +167,4 @@ class TestQuizEndpoint:
                 "num_questions": 5
             }
         )
-        assert response.status_code in [200, 404, 500, 503]
-
+        assert response.status_code in [200, 404]

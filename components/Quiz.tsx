@@ -37,7 +37,7 @@ export function Quiz({ docId, topic }: QuizProps) {
   const generateQuiz = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const response: QuizResponse = await apiClient.generateQuiz(docId, topic, 10)
       setQuizState({
@@ -216,7 +216,7 @@ export function Quiz({ docId, topic }: QuizProps) {
               </Button>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <span>Question {quizState.currentQuestion + 1} of {quizState.questions.length}</span>
             <Badge variant="secondary">
@@ -239,7 +239,7 @@ export function Quiz({ docId, topic }: QuizProps) {
               <h3 className="text-lg font-medium mb-4">
                 {currentQuestion.prompt}
               </h3>
-              
+
               {currentQuestion.type === 'multiple_choice' && currentQuestion.options && (
                 <div className="space-y-2">
                   {currentQuestion.options.map((option, index) => (
@@ -271,7 +271,7 @@ export function Quiz({ docId, topic }: QuizProps) {
                   ))}
                 </div>
               )}
-              
+
               {currentQuestion.type === 'short_answer' && (
                 <div className="space-y-2">
                   <textarea
@@ -291,7 +291,7 @@ export function Quiz({ docId, topic }: QuizProps) {
                   )}
                 </div>
               )}
-              
+
               {currentQuestion.type === 'cloze' && (
                 <div className="space-y-2">
                   <div className="p-3 border rounded-md">
@@ -317,13 +317,13 @@ export function Quiz({ docId, topic }: QuizProps) {
                 </div>
               )}
             </div>
-            
+
             {/* Source */}
             <div className="p-3 bg-muted rounded-md">
               <p className="text-xs text-muted-foreground mb-1">Source:</p>
               <p className="text-sm">Page {currentQuestion.page}</p>
               <p className="text-xs text-muted-foreground mt-1 italic">
-                "{currentQuestion.quote}"
+                &quot;{currentQuestion.quote}&quot;
               </p>
             </div>
           </div>
@@ -341,7 +341,7 @@ export function Quiz({ docId, topic }: QuizProps) {
             >
               Previous
             </Button>
-            
+
             {quizState.completed ? (
               <div className="text-center">
                 <p className="text-lg font-medium mb-2">
