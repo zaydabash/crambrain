@@ -1,5 +1,7 @@
 # CramBrain (Hosted Edition)
 
+![CramBrain](crambrain.png)
+
 **Goal:** Production-ready, publicly accessible web app for uploading notes/slides, asking grounded questions with per-page citations, and generating quizzes.
 
 ## Live Demo Checklist
