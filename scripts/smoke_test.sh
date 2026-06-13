@@ -35,12 +35,12 @@ test_health() {
     response=$(curl -s -w "%{http_code}" -o /tmp/health_response.json "$API_BASE_URL/v1/health")
     
     if [ "$response" = "200" ]; then
-        log_info "✓ Health check passed"
+        log_info "Health check passed"
         if [ "$VERBOSE" = "true" ]; then
             cat /tmp/health_response.json | jq .
         fi
     else
-        log_error "✗ Health check failed with status $response"
+        log_error "Health check failed with status $response"
         return 1
     fi
 }
@@ -55,12 +55,12 @@ test_presign() {
         "$API_BASE_URL/v1/presign")
     
     if [ "$response" = "200" ]; then
-        log_info "✓ Presign endpoint working"
+        log_info "Presign endpoint working"
         if [ "$VERBOSE" = "true" ]; then
             cat /tmp/presign_response.json | jq .
         fi
     else
-        log_error "✗ Presign endpoint failed with status $response"
+        log_error "Presign endpoint failed with status $response"
         return 1
     fi
 }
@@ -72,12 +72,12 @@ test_docs_list() {
         "$API_BASE_URL/v1/docs")
     
     if [ "$response" = "200" ]; then
-        log_info "✓ Docs list endpoint working"
+        log_info "Docs list endpoint working"
         if [ "$VERBOSE" = "true" ]; then
             cat /tmp/docs_response.json | jq .
         fi
     else
-        log_error "✗ Docs list endpoint failed with status $response"
+        log_error "Docs list endpoint failed with status $response"
         return 1
     fi
 }
@@ -89,12 +89,12 @@ test_search() {
         "$API_BASE_URL/v1/search?q=test")
     
     if [ "$response" = "200" ]; then
-        log_info "✓ Search endpoint working"
+        log_info "Search endpoint working"
         if [ "$VERBOSE" = "true" ]; then
             cat /tmp/search_response.json | jq .
         fi
     else
-        log_error "✗ Search endpoint failed with status $response"
+        log_error "Search endpoint failed with status $response"
         return 1
     fi
 }
@@ -125,10 +125,10 @@ main() {
     log_info "Test Summary: $tests_passed/$tests_total tests passed"
     
     if [ $tests_passed -eq $tests_total ]; then
-        log_info "🎉 All tests passed! API is working correctly."
+        log_info "All tests passed! API is working correctly."
         exit 0
     else
-        log_error "❌ Some tests failed. Check the logs above."
+        log_error "Some tests failed. Check the logs above."
         exit 1
     fi
 }

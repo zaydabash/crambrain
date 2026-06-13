@@ -31,9 +31,11 @@ async def get_document(
         doc = await chroma_store.get_document(doc_id)
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
-        
-        return DocumentResponse(**doc)
-        
+
+        return DocumentResponse(**doc.model_dump(exclude={"metadata"}))
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get document: {e}")
         raise HTTPException(status_code=500, detail="Failed to get document")

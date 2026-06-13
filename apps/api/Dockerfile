@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 # Rest of deps (now small/CPU-only)
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# ——— Cache Hugging Face / sentence-transformers model at build time ———
+# Cache Hugging Face / sentence-transformers model at build time
 ENV HF_HOME=/app/.cache/huggingface \
     TRANSFORMERS_CACHE=/app/.cache/huggingface \
     SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence-transformers \

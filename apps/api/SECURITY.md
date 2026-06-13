@@ -8,7 +8,7 @@ This document outlines security considerations, best practices, and implementati
 
 ### Current State
 
-⚠️ **Note:** The API currently does not implement user authentication or authorization. All endpoints are publicly accessible.
+**Note:** The API currently does not implement user authentication or authorization. All endpoints are publicly accessible.
 
 ### Recommendations for Production
 
@@ -93,7 +93,7 @@ class QueryRequest(BaseModel):
 ```python
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ⚠️ Allows all origins
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -217,7 +217,7 @@ class SimpleRateLimiter:
 
 ### HTTPS Only
 
-⚠️ **Important:** Always use HTTPS in production. Never use HTTP for API endpoints.
+**Important:** Always use HTTPS in production. Never use HTTP for API endpoints.
 
 ### Headers
 

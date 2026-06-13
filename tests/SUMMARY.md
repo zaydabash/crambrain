@@ -1,6 +1,6 @@
 # Test Suite Summary
 
-## ✅ Completed Setup
+## Completed Setup
 
 ### Backend Tests (Python/pytest)
 
@@ -14,10 +14,10 @@
 - `pytest.ini` - Pytest configuration file
 
 **Test Coverage:**
-- ✅ ID generation (ULID, doc_id, chunk_id)
-- ✅ File hashing and sanitization
-- ✅ Pydantic model validation (Presign, Ingest, Query, Quiz)
-- ✅ API endpoint validation (health, presign, ingest, query, quiz)
+- ID generation (ULID, doc_id, chunk_id)
+- File hashing and sanitization
+- Pydantic model validation (Presign, Ingest, Query, Quiz)
+- API endpoint validation (health, presign, ingest, query, quiz)
 
 **Dependencies Added:**
 - `pytest-cov==4.1.0` - Coverage reporting (already had pytest, pytest-asyncio, httpx)
@@ -32,10 +32,10 @@
 - `jest.setup.js` - Jest setup and mocks (root)
 
 **Test Coverage:**
-- ✅ Utility functions (formatFileSize, formatDate, extractPageNumbers, etc.)
-- ✅ PDF validation
-- ✅ Error handling
-- ✅ Button component rendering and interactions
+- Utility functions (formatFileSize, formatDate, extractPageNumbers, etc.)
+- PDF validation
+- Error handling
+- Button component rendering and interactions
 
 **Dependencies Added:**
 - `@testing-library/react@^14.1.2` - React component testing
@@ -50,7 +50,7 @@
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 cram-brain/
@@ -79,7 +79,7 @@ cram-brain/
     └── requirements.txt (updated)
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Run Backend Tests
 ```bash
@@ -97,7 +97,7 @@ npm install  # Install new test dependencies
 npm test
 ```
 
-## 📊 Test Statistics
+## Test Statistics
 
 ### Backend
 - **Test Files:** 3
@@ -109,7 +109,7 @@ npm test
 - **Test Cases:** ~20+
 - **Coverage Areas:** Utilities, Components
 
-## 🔧 Configuration Files
+## Configuration Files
 
 ### Backend
 - `pytest.ini` - Test discovery, markers, async support
@@ -119,7 +119,7 @@ npm test
 - `jest.config.js` - Jest configuration with Next.js integration
 - `jest.setup.js` - Test environment setup and mocks
 
-## 📝 Next Steps
+## Next Steps
 
 1. **Install Dependencies:**
    ```bash
@@ -146,7 +146,7 @@ npm test
    - Integration tests for API workflows
    - E2E tests for user flows
 
-## 🎯 Testing Best Practices
+## Testing Best Practices
 
 1. **Write tests first** (TDD) when possible
 2. **Keep tests isolated** - each test should be independent
@@ -155,13 +155,13 @@ npm test
 5. **Test edge cases** - invalid inputs, error conditions
 6. **Maintain test coverage** - aim for >80% coverage
 
-## 📚 Documentation
+## Documentation
 
 - See `tests/README.md` for detailed documentation
 - See `tests/SETUP.md` for setup instructions
 - See individual test files for examples
 
-## ✅ Verification
+## Verification
 
 To verify the test setup is working:
 

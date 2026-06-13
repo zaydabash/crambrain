@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI):
         deps.answer_service = AnswerService(deps.search_service, settings.openai_api_key)
         
         # Quiz service
-        deps.quiz_service = QuizService(settings, deps.embedding_service)
+        deps.quiz_service = QuizService(model=settings.openai_model)
         
         logger.info("All services initialized successfully")
         

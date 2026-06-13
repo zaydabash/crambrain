@@ -40,9 +40,9 @@ download_sample_pdf() {
     
     if [ ! -f "/tmp/sample.pdf" ]; then
         curl -s -o /tmp/sample.pdf "$SAMPLE_PDF_URL"
-        log_info "✓ Sample PDF downloaded"
+        log_info "Sample PDF downloaded"
     else
-        log_info "✓ Sample PDF already exists"
+        log_info "Sample PDF already exists"
     fi
 }
 
@@ -68,7 +68,7 @@ upload_and_ingest() {
         return 1
     fi
     
-    log_info "✓ Got presigned URL"
+    log_info "Got presigned URL"
     
     # Step 2: Upload file
     log_info "Uploading file to S3..."
@@ -79,9 +79,9 @@ upload_and_ingest() {
         "$upload_url")
     
     if [ "$upload_response" = "200" ]; then
-        log_info "✓ File uploaded successfully"
+        log_info "File uploaded successfully"
     else
-        log_error "✗ File upload failed with status $upload_response"
+        log_error "File upload failed with status $upload_response"
         return 1
     fi
     
@@ -103,7 +103,7 @@ upload_and_ingest() {
         return 1
     fi
     
-    log_info "✓ Document ingested with ID: $doc_id"
+    log_info "Document ingested with ID: $doc_id"
     echo "$doc_id" > /tmp/demo_doc_id.txt
 }
 
@@ -130,14 +130,14 @@ test_ask_question() {
     answer=$(echo "$ask_response" | jq -r '.answer')
     
     if [ "$answer" != "null" ] && [ "$answer" != "" ]; then
-        log_info "✓ Question answered successfully"
+        log_info "Question answered successfully"
         log_info "Answer: $answer"
         
         # Check for citations
         citations=$(echo "$ask_response" | jq -r '.citations | length')
-        log_info "✓ Found $citations citations"
+        log_info "Found $citations citations"
     else
-        log_error "✗ Failed to get answer"
+        log_error "Failed to get answer"
         return 1
     fi
 }
@@ -165,13 +165,13 @@ test_quiz_generation() {
     questions_count=$(echo "$quiz_response" | jq -r '.questions | length')
     
     if [ "$questions_count" -gt 0 ]; then
-        log_info "✓ Quiz generated successfully with $questions_count questions"
+        log_info "Quiz generated successfully with $questions_count questions"
         
         # Show first question as example
         first_question=$(echo "$quiz_response" | jq -r '.questions[0].prompt')
         log_info "Sample question: $first_question"
     else
-        log_error "✗ Failed to generate quiz"
+        log_error "Failed to generate quiz"
         return 1
     fi
 }
@@ -189,7 +189,7 @@ test_document_listing() {
     docs_count=$(echo "$docs_response" | jq -r '.documents | length')
     
     if [ "$docs_count" -gt 0 ]; then
-        log_info "✓ Found $docs_count documents"
+        log_info "Found $docs_count documents"
     else
         log_warn "No documents found"
     fi
@@ -231,14 +231,14 @@ main() {
     log_info "Demo Summary: $steps_passed/$steps_total steps completed"
     
     if [ $steps_passed -eq $steps_total ]; then
-        log_info "🎉 Demo completed successfully!"
+        log_info "Demo completed successfully!"
         log_info "You can now:"
         log_info "  - Visit the web app and upload documents"
         log_info "  - Ask questions and get answers with citations"
         log_info "  - Generate quizzes from your documents"
         log_info "  - View documents with page-specific navigation"
     else
-        log_error "❌ Demo failed. Check the logs above."
+        log_error "Demo failed. Check the logs above."
         exit 1
     fi
 }

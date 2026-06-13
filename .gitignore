@@ -112,3 +112,7 @@ pids
 
 # TernJS port file
 .tern-port
+.gstack/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

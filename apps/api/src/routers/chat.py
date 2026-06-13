@@ -41,19 +41,24 @@ async def ask_question(
         # Generate grounded answer
         answer_result = await answer_service.generate_answer(
             query=request.query,
-            retrieval_results=retrieval_results
+            search_results=retrieval_results
         )
-        
+
         # Extract citations with page anchors
         citations = []
         for result in retrieval_results:
+            text = result.text[:200] + "..." if len(result.text) > 200 else result.text
             citation = Citation(
                 page=result.page,
-                text=result.text[:200] + "..." if len(result.text) > 200 else result.text,
+                text=text,
                 score=result.score,
                 doc_id=result.doc_id,
                 chunk_id=result.chunk_id,
-                bbox_id=result.metadata.get("bbox_id") # Ensure bbox_id is passed if available
+                bbox_id=result.bbox_id,
+                chunk_type=result.chunk_type,
+                preview_url=result.preview_url,
+                source_url=result.source_url,
+                quote=text,
             )
             citations.append(citation)
         
@@ -64,6 +69,8 @@ async def ask_question(
             grounding_score=answer_result.grounding_score
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to process question: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process question: {str(e)}")

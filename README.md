@@ -128,19 +128,22 @@ cram-brain/
 | `API_HOST` | API host | `0.0.0.0` |
 | `API_PORT` | API port | `8000` |
 | `CORS_ORIGINS` | Allowed origins | `https://your-app.vercel.app` |
+| `API_KEY` | Optional API key required via `X-API-Key` header | `your-api-key` |
+| `RATE_LIMIT_REQUESTS` | Max requests per window, per IP | `100` |
+| `RATE_LIMIT_WINDOW` | Rate limit window in seconds | `3600` |
 | `S3_ENDPOINT_URL` | S3-compatible endpoint | `https://your-account.r2.cloudflarestorage.com` |
 | `S3_REGION` | S3 region | `auto` |
 | `S3_BUCKET` | S3 bucket name | `crambrain-documents` |
-| `S3_ACCESS_KEY_ID` | S3 access key | `your-access-key` |
-| `S3_SECRET_ACCESS_KEY` | S3 secret key | `your-secret-key` |
+| `S3_ACCESS_KEY` | S3 access key | `your-access-key` |
+| `S3_SECRET_KEY` | S3 secret key | `your-secret-key` |
 | `S3_PUBLIC_BASE_URL` | Public S3 base URL | `https://your-bucket.your-domain.com` |
 | `CHROMA_PERSIST_DIR` | Chroma storage path | `/data/chroma` |
 | `CHROMA_COLLECTION` | Chroma collection name | `crambrain` |
 | `ENABLE_TESSERACT` | Enable OCR fallback | `true` |
 | `TESSERACT_CMD` | Tesseract command path | `/usr/bin/tesseract` |
 | `OPENAI_MODEL` | OpenAI model | `gpt-4o-mini` |
-| `MAX_FILE_MB` | Max file size | `50` |
-| `ALLOWED_MIME` | Allowed MIME types | `application/pdf,image/png,image/jpeg` |
+| `MAX_FILE_MB` | Max upload size in MB | `50` |
+| `ALLOWED_MIME` | Allowed upload MIME types (comma-separated) | `application/pdf` |
 
 ### Copy-Paste Environment Blocks
 
@@ -152,8 +155,8 @@ CORS_ORIGINS=https://your-app.vercel.app
 S3_ENDPOINT_URL=https://your-account.r2.cloudflarestorage.com
 S3_REGION=auto
 S3_BUCKET=crambrain-documents
-S3_ACCESS_KEY_ID=your-access-key
-S3_SECRET_ACCESS_KEY=your-secret-key
+S3_ACCESS_KEY=your-access-key
+S3_SECRET_KEY=your-secret-key
 S3_PUBLIC_BASE_URL=https://your-bucket.your-domain.com
 CHROMA_PERSIST_DIR=/data/chroma
 CHROMA_COLLECTION=crambrain
@@ -162,9 +165,10 @@ TESSERACT_CMD=/usr/bin/tesseract
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 MAX_FILE_MB=50
-ALLOWED_MIME=application/pdf,image/png,image/jpeg
+ALLOWED_MIME=application/pdf
 RATE_LIMIT_REQUESTS=100
 RATE_LIMIT_WINDOW=3600
+API_KEY=
 ```
 
 **For Vercel (Web):**

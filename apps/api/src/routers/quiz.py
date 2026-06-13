@@ -82,33 +82,56 @@ async def generate_quiz(
 async def generate_cram_plan(
     request: dict,
     chroma_store = Depends(get_chroma_store),
+    search_service = Depends(get_search_service),
     quiz_service = Depends(get_quiz_service)
 ):
-    """Generate a 20-minute cram plan"""
+    """Generate a cram plan covering the document's most relevant pages"""
     try:
         doc_id = request.get("doc_id")
         time_minutes = request.get("time_minutes", 20)
-        
+        topic = request.get("topic")
+
+        if not doc_id:
+            raise HTTPException(status_code=422, detail="doc_id is required")
+
         logger.info(f"Generating {time_minutes}-minute cram plan for doc_id: {doc_id}")
-        
+
         # Get document structure
         doc = await chroma_store.get_document(doc_id)
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
-        
-        # Generate study plan
-        plan = await quiz_service.generate_cram_plan(
+
+        # Pull the most relevant snippets to build the plan from
+        search_results = await search_service.search(
+            query=topic or "key concepts summary",
             doc_id=doc_id,
+            top_k=20
+        )
+
+        snippets = [
+            {"text": result.text, "page": result.page}
+            for result in search_results
+        ]
+
+        # Roughly one section per 3 minutes of study time
+        num_sections = max(1, min(10, time_minutes // 3 or 1))
+
+        plan = await quiz_service.generate_cram_plan(
+            snippets=snippets,
+            n=num_sections,
+            topic=topic,
             time_minutes=time_minutes
         )
-        
+
         return {
-            "plan": plan,
+            "plan": plan["plan"],
             "doc_id": doc_id,
             "time_minutes": time_minutes,
             "generated_at": datetime.utcnow().isoformat()
         }
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate cram plan: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate cram plan: {str(e)}")
@@ -117,26 +140,40 @@ async def generate_cram_plan(
 async def get_concept_graph(
     doc_id: str,
     chroma_store = Depends(get_chroma_store),
+    search_service = Depends(get_search_service),
     quiz_service = Depends(get_quiz_service)
 ):
     """Get concept graph showing topic connections"""
     try:
         logger.info(f"Generating concept graph for doc_id: {doc_id}")
-        
+
         # Get document and analyze concepts
         doc = await chroma_store.get_document(doc_id)
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
-        
+
+        search_results = await search_service.search(
+            query="key concepts",
+            doc_id=doc_id,
+            top_k=50
+        )
+
+        snippets = [
+            {"text": result.text, "page": result.page}
+            for result in search_results
+        ]
+
         # Generate concept graph
-        graph = await quiz_service.generate_concept_graph(doc_id)
-        
+        graph = await quiz_service.generate_concept_graph(snippets, doc_id=doc_id)
+
         return {
             "graph": graph,
             "doc_id": doc_id,
             "generated_at": datetime.utcnow().isoformat()
         }
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate concept graph: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate concept graph: {str(e)}")

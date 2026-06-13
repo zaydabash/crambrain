@@ -4,12 +4,12 @@ FastAPI-based backend for CramBrain, providing RAG (Retrieval-Augmented Generati
 
 ## Features
 
-- 📄 PDF document processing and ingestion
-- 🔍 Vector-based semantic search
-- 💬 Question answering with citations
-- 📝 Quiz generation
-- 🔐 Rate limiting
-- 📊 Health monitoring
+- PDF document processing and ingestion
+- Vector-based semantic search
+- Question answering with citations
+- Quiz generation
+- Rate limiting
+- Health monitoring
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ uvicorn src.main:app --reload
 
 ## Security
 
-⚠️ **Important:** This API does not currently implement authentication. All endpoints are publicly accessible.
+**Important:** This API does not currently implement authentication. All endpoints are publicly accessible.
 
 See [SECURITY.md](SECURITY.md) for security considerations and recommendations.
 

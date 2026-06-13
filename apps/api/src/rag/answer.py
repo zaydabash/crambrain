@@ -121,13 +121,18 @@ Answer:"""
             # Find the search result for this page
             for result in search_results:
                 if result.page == page:
+                    quote = result.text[:200] + "..." if len(result.text) > 200 else result.text
                     citation = Citation(
                         doc_id=result.doc_id,
                         page=page,
+                        text=result.text,
+                        score=result.score,
+                        chunk_id=result.chunk_id,
                         bbox_id=result.bbox_id,
+                        chunk_type=result.chunk_type,
                         preview_url=result.preview_url,
                         source_url=result.source_url,
-                        quote=result.text[:200] + "..." if len(result.text) > 200 else result.text
+                        quote=quote,
                     )
                     citations.append(citation)
                     break

@@ -9,7 +9,7 @@ This document outlines the security audit findings and fixes applied to the Cram
 
 ## Findings & Fixes
 
-### ✅ Fixed Issues
+### Fixed Issues
 
 #### 1. Environment Variables & Credentials
 
@@ -52,7 +52,7 @@ This document outlines the security audit findings and fixes applied to the Cram
 - `apps/api/README.md` - API documentation with security section
 - `SECURITY_AUDIT.md` - This audit report
 
-### ⚠️ Known Issues (Not Fixed)
+### Known Issues (Not Fixed)
 
 #### 1. No Authentication
 
@@ -93,17 +93,17 @@ This document outlines the security audit findings and fixes applied to the Cram
 
 **Documentation:** See `apps/api/SECURITY.md` for rate limiting recommendations.
 
-### ✅ Verified Secure
+### Verified Secure
 
 #### 1. No eval() Usage
 
-**Status:** ✅ Verified secure
+**Status:** Verified secure
 
 **Description:** No `eval()` calls found in the codebase (excluding node_modules).
 
 #### 2. No Hardcoded Credentials
 
-**Status:** ✅ Verified secure
+**Status:** Verified secure
 
 **Description:** No hardcoded credentials found in the codebase. All credentials are loaded from environment variables.
 
@@ -111,7 +111,7 @@ This document outlines the security audit findings and fixes applied to the Cram
 
 #### 3. Input Validation
 
-**Status:** ✅ Verified secure
+**Status:** Verified secure
 
 **Description:** All API inputs are validated using Pydantic models:
 - String length limits
@@ -122,13 +122,13 @@ This document outlines the security audit findings and fixes applied to the Cram
 
 #### 4. HTTPS Usage
 
-**Status:** ✅ Verified secure
+**Status:** Verified secure
 
 **Description:** All production endpoints use HTTPS. HTTP is only used in localhost development (documented in README).
 
 #### 5. File Upload Security
 
-**Status:** ✅ Verified secure
+**Status:** Verified secure
 
 **Description:**
 - File type validation (PDF only)
@@ -138,7 +138,7 @@ This document outlines the security audit findings and fixes applied to the Cram
 
 ## Security Checklist
 
-### Completed ✅
+### Completed
 - [x] Audit environment variables
 - [x] Update `.gitignore` for secrets
 - [x] Remove placeholder credentials from examples
@@ -151,7 +151,7 @@ This document outlines the security audit findings and fixes applied to the Cram
 - [x] Document CORS recommendations
 - [x] Document rate limiting recommendations
 
-### Recommended (Not Completed) ⚠️
+### Recommended (Not Completed)
 - [ ] Implement API key authentication
 - [ ] Restrict CORS origins
 - [ ] Implement IP-based rate limiting

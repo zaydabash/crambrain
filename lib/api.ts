@@ -280,7 +280,7 @@ class ApiClient {
 
   // Search documents
   async searchDocuments(query: string, docId?: string, limit: number = 10): Promise<SearchResponse> {
-    const params = new URLSearchParams({ q: query, limit: limit.toString() })
+    const params = new URLSearchParams({ q: query, top_k: limit.toString() })
     if (docId) params.append('doc_id', docId)
     
     const response = await this.request<SearchResponse>(`/v1/search?${params}`)

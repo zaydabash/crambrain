@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = Field("/data/chroma", alias="CHROMA_PERSIST_DIR")
     chroma_collection: str = Field("crambrain", alias="CHROMA_COLLECTION")
 
+    # Upload limits
+    max_file_mb: int = Field(50, alias="MAX_FILE_MB")
+    allowed_mime: str = Field("application/pdf", alias="ALLOWED_MIME")
+
     model_config = SettingsConfigDict(populate_by_name=True, extra="ignore")
 
     @property
@@ -42,6 +46,11 @@ class Settings(BaseSettings):
         if not self.cors_origins or self.cors_origins.strip() == "*":
             return ["*"]
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def allowed_mime_types(self) -> list[str]:
+        """Return allowed MIME types as a list."""
+        return [m.strip() for m in self.allowed_mime.split(",") if m.strip()]
 
 def get_settings() -> "Settings":
     return Settings()  # type: ignore

@@ -5,6 +5,7 @@ from datetime import datetime
 import logging
 
 from core.deps import get_s3_service, get_pdf_processor, get_chroma_store, get_embedding_service
+from core.settings import get_settings
 from utils.id import generate_doc_id
 from models.types import PresignRequest, PresignResponse, IngestResponse, IngestRequest
 
@@ -41,6 +42,8 @@ async def create_presigned_upload_get(
     """Generate presigned URL for S3 upload (GET)"""
     try:
         return await _generate_presigned_url(filename, s3_service)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate presigned URL: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {str(e)}")
@@ -53,6 +56,8 @@ async def create_presigned_upload_post(
     """Generate presigned URL for S3 upload (POST)"""
     try:
         return await _generate_presigned_url(request.filename, s3_service)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate presigned URL: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {str(e)}")
@@ -67,17 +72,26 @@ async def upload_and_ingest_document(
 ):
     """Upload file directly to backend, then to B2, then ingest - avoids CORS issues"""
     try:
+        settings = get_settings()
+
         # Validate file type
         if not file.filename.endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are supported")
-        
+
+        if file.content_type and file.content_type not in settings.allowed_mime_types:
+            raise HTTPException(status_code=400, detail=f"Unsupported content type: {file.content_type}")
+
         logger.info(f"Starting direct upload for file: {file.filename}")
-        
+
         # Read file content
         file_content = await file.read()
         if len(file_content) == 0:
             raise HTTPException(status_code=400, detail="File is empty")
-        
+
+        max_bytes = settings.max_file_mb * 1024 * 1024
+        if len(file_content) > max_bytes:
+            raise HTTPException(status_code=400, detail=f"File exceeds maximum size of {settings.max_file_mb}MB")
+
         # Generate unique file key
         file_id = generate_doc_id()
         file_key = f"docs/{file_id}.pdf"
@@ -98,7 +112,8 @@ async def upload_and_ingest_document(
         
         # Store in Chroma with metadata
         doc_id = generate_doc_id()
-        await chroma_store.store_chunks(doc_id, all_chunks, {
+        embeddings = [chunk.embedding for chunk in all_chunks]
+        await chroma_store.store_chunks(doc_id, all_chunks, embeddings, {
             "original_name": file.filename or "uploaded.pdf",
             "file_url": file_url,
             "pages": len(pages_data),
@@ -148,7 +163,8 @@ async def ingest_document(
         
         # Store in Chroma with metadata
         doc_id = generate_doc_id()
-        await chroma_store.store_chunks(doc_id, all_chunks, {
+        embeddings = [chunk.embedding for chunk in all_chunks]
+        await chroma_store.store_chunks(doc_id, all_chunks, embeddings, {
             "original_name": request.original_name,
             "file_url": request.file_url,
             "pages": len(pages_data),
