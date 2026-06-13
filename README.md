@@ -1,7 +1,5 @@
 # CramBrain
 
-![CramBrain](crambrain.png)
-
 **Goal:** Accessible web app for uploading notes/slides, asking grounded questions with per-page citations, and generating quizzes.
 
 ## Screenshots
