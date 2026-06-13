@@ -4,8 +4,18 @@ Pytest configuration and fixtures for CramBrain tests
 
 import pytest
 import os
+import sys
+from pathlib import Path
 from typing import Generator
 from unittest.mock import Mock, MagicMock, AsyncMock
+
+# Make `apps.api.src.main` importable (repo root) and let its internal
+# flat imports like `from core.settings import ...` resolve (apps/api/src)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+API_SRC = REPO_ROOT / "apps" / "api" / "src"
+for path in (str(REPO_ROOT), str(API_SRC)):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 # Set test environment variables
 os.environ["TESTING"] = "true"
