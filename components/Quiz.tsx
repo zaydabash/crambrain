@@ -165,7 +165,7 @@ export function Quiz({ docId, topic }: QuizProps) {
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="p-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Generate Quiz</h3>
+            <h3 className="text-lg font-medium mb-2">Generate Quiz</h3>
             <p className="text-muted-foreground mb-6">
               Create a quiz with 10 questions based on your documents
             </p>

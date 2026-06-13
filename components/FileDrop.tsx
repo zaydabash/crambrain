@@ -46,8 +46,6 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
 
     try {
       // Direct upload to backend - handles B2 upload and ingestion in one step
-      console.log('Starting upload for file:', file.name, file.size, 'bytes')
-      
       // Use XHR directly to get reference for cancellation
       const formData = new FormData()
       formData.append('file', file)
@@ -142,7 +140,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
               <input data-testid="file-input" aria-label="file input" {...getInputProps()} />
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-lg font-medium">
                   {isDragActive ? 'Drop your PDF here' : 'Upload your study materials'}
                 </h3>
                 <p className="text-muted-foreground">

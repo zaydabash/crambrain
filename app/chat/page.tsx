@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Chat } from '@/components/Chat'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,30 +13,38 @@ import { CHAT_CONSTANTS } from '@/lib/constants'
 
 export default function ChatPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const docId = searchParams.get('docId') || undefined
   const [selectedCitation, setSelectedCitation] = useState<CitationType | null>(null)
 
   const handleCitationClick = (citation: CitationType) => {
     setSelectedCitation(citation)
     // Navigate to document viewer
-    router.push(`/docs/${citation.doc_id}?page=${citation.page}&highlight=${citation.bbox_id}`)
+    const params = new URLSearchParams({ page: citation.page.toString() })
+    if (citation.bbox_id) {
+      params.set('highlight', citation.bbox_id)
+    }
+    router.push(`/docs/${citation.doc_id}?${params.toString()}`)
   }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border">
+        <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Button>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="inline-flex items-center text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+                Home
               </Link>
-              <h1 className="text-2xl font-bold">Study Chat</h1>
+              <span className="text-border">/</span>
+              <h1 className="text-sm font-medium tracking-[0.2em] uppercase">Chat</h1>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Link href="/upload">
                 <Button variant="outline" size="sm">
                   <FileText className="h-4 w-4 mr-2" />
@@ -54,12 +62,13 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Chat Section */}
             <div className="lg:col-span-2">
               <Chat
+                docId={docId}
                 onCitationClick={handleCitationClick}
               />
             </div>

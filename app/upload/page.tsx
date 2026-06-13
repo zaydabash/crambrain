@@ -31,30 +31,35 @@ export default function UploadPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border">
+        <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Button>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="inline-flex items-center text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+                Home
               </Link>
-              <h1 className="text-2xl font-bold">Upload Documents</h1>
+              <span className="text-border">/</span>
+              <h1 className="text-sm font-medium tracking-[0.2em] uppercase">Upload</h1>
             </div>
             <Link href="/chat">
-              <Button variant="outline">Go to Chat</Button>
+              <Button variant="outline" size="sm">Go to chat</Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Upload Section */}
           <div>
-            <h2 className="text-3xl font-bold mb-2">Upload Your Study Materials</h2>
+            <h2 className="text-2xl md:text-3xl mb-2">
+              <span className="text-muted-foreground">Upload your</span>{' '}
+              <span className="font-medium">study materials</span>
+            </h2>
             <p className="text-muted-foreground mb-8">
               Upload PDF documents to start asking questions and generating quizzes
             </p>
@@ -68,7 +73,7 @@ export default function UploadPage() {
           {/* Uploaded Documents */}
           {uploadedDocs.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold mb-4">Uploaded Documents</h3>
+              <h3 className="text-xl font-medium mb-4">Uploaded Documents</h3>
               <div className="grid gap-4">
                 {uploadedDocs.map((doc, index) => (
                   <Card key={doc.docId}>
@@ -114,31 +119,25 @@ export default function UploadPage() {
                 Follow these steps to upload your study materials
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    1
-                  </div>
-                  <h4 className="font-medium mb-1">Choose File</h4>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">01</p>
+                  <h4 className="font-medium mb-1">Choose file</h4>
                   <p className="text-sm text-muted-foreground">
                     Select a PDF file from your computer
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    2
-                  </div>
-                  <h4 className="font-medium mb-1">Upload & Process</h4>
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">02</p>
+                  <h4 className="font-medium mb-1">Upload &amp; process</h4>
                   <p className="text-sm text-muted-foreground">
                     File is uploaded and processed by AI
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-                    3
-                  </div>
-                  <h4 className="font-medium mb-1">Start Studying</h4>
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">03</p>
+                  <h4 className="font-medium mb-1">Start studying</h4>
                   <p className="text-sm text-muted-foreground">
                     Ask questions and generate quizzes
                   </p>

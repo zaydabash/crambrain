@@ -51,9 +51,9 @@ export function Citation({
 
   const getCitationColor = (chunkType?: string): string => {
     switch (chunkType) {
-      case 'image': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'table': return 'bg-green-100 text-green-800 border-green-200'
-      default: return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'image': return 'bg-accent text-foreground border-border'
+      case 'table': return 'bg-secondary text-foreground border-border'
+      default: return 'bg-muted text-foreground border-border'
     }
   }
 
@@ -115,13 +115,13 @@ export function Citation({
                   onClick={handlePageClick}
                 />
               ) : (
-                <div 
-                  className="w-16 h-20 bg-gray-100 border rounded flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors"
+                <div
+                  className="w-16 h-20 bg-muted border border-border rounded flex items-center justify-center cursor-pointer hover:bg-accent transition-colors"
                   onClick={handlePageClick}
                 >
                   <div className="text-center">
-                    <div className="text-xs font-medium text-gray-600">Page</div>
-                    <div className="text-lg font-bold text-gray-800">{citation.page}</div>
+                    <div className="text-xs font-medium text-muted-foreground">Page</div>
+                    <div className="text-lg font-medium text-foreground">{citation.page}</div>
                   </div>
                 </div>
               )}
@@ -185,17 +185,17 @@ export function Citation({
 
             {/* Text Content */}
             <div className="space-y-2">
-              <p className="text-sm text-gray-800 leading-relaxed">
+              <p className="text-sm text-foreground leading-relaxed">
                 {isExpanded ? citation.quote : truncatedText}
               </p>
-              
+
               {citation.quote.length > 200 && !isExpanded && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsExpanded(true)
                   }}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline font-medium"
                 >
                   Show more
                 </button>
@@ -228,7 +228,7 @@ export function Citation({
             </div>
 
             {/* Metadata */}
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-muted-foreground">
               <span>Doc ID: {citation.doc_id}</span>
               {/* Chunk ID removed - not part of Citation schema */}
             </div>
@@ -259,8 +259,8 @@ export function CitationList({
 }: CitationListProps) {
   if (!citations.length) {
     return (
-      <div className={cn("text-center py-8 text-gray-500", className)}>
-        <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+      <div className={cn("text-center py-8 text-muted-foreground", className)}>
+        <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
         <p>No citations available</p>
       </div>
     )
@@ -269,7 +269,7 @@ export function CitationList({
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Citations</h3>
+        <h3 className="text-lg font-medium">Citations</h3>
         <Badge variant="secondary">
           {citations.length} citation{citations.length !== 1 ? 's' : ''}
         </Badge>

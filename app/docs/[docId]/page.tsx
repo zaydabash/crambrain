@@ -54,20 +54,22 @@ export default function DocumentPage({ params }: DocumentPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center space-x-4">
-              <Link href="/chat">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Chat
-                </Button>
+        <header className="border-b border-border">
+          <div className="container mx-auto px-6 py-5">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/chat"
+                className="inline-flex items-center text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+                Chat
               </Link>
-              <h1 className="text-2xl font-bold">Loading Document...</h1>
+              <span className="text-border">/</span>
+              <h1 className="text-sm font-medium tracking-[0.2em] uppercase">Loading…</h1>
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
@@ -82,20 +84,22 @@ export default function DocumentPage({ params }: DocumentPageProps) {
   if (error || !document) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center space-x-4">
-              <Link href="/chat">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Chat
-                </Button>
+        <header className="border-b border-border">
+          <div className="container mx-auto px-6 py-5">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/chat"
+                className="inline-flex items-center text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+                Chat
               </Link>
-              <h1 className="text-2xl font-bold">Document Error</h1>
+              <span className="text-border">/</span>
+              <h1 className="text-sm font-medium tracking-[0.2em] uppercase">Document error</h1>
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <p className="text-destructive mb-2">Failed to load document</p>
@@ -113,24 +117,26 @@ export default function DocumentPage({ params }: DocumentPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border">
+        <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/chat">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Chat
-                </Button>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/chat"
+                className="inline-flex items-center text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+                Chat
               </Link>
+              <span className="text-border">/</span>
               <div>
-                <h1 className="text-xl font-bold">{document.original_name}</h1>
+                <h1 className="text-lg font-medium">{document.original_name}</h1>
                 <p className="text-sm text-muted-foreground">
                   {document.pages} pages • {document.chunks} chunks
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -144,7 +150,7 @@ export default function DocumentPage({ params }: DocumentPageProps) {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-4 gap-8">
             {/* PDF Viewer */}
