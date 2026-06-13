@@ -4,6 +4,16 @@
 
 **Goal:** Accessible web app for uploading notes/slides, asking grounded questions with per-page citations, and generating quizzes.
 
+## Screenshots
+
+| Home | Upload |
+|---|---|
+| ![Home](docs/screenshots/home.png) | ![Upload](docs/screenshots/upload.png) |
+
+| Chat | Quiz |
+|---|---|
+| ![Chat](docs/screenshots/chat.png) | ![Quiz](docs/screenshots/quiz.png) |
+
 ## Live Demo Checklist
 
 After deployment, verify these features work:
