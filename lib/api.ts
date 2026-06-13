@@ -26,6 +26,14 @@ export const IngestResponseSchema = z.object({
   status: z.string(),
 })
 
+export const DocumentStatusResponseSchema = z.object({
+  doc_id: z.string(),
+  status: z.string(),
+  pages: z.number().nullable().optional(),
+  chunks: z.number().nullable().optional(),
+  error: z.string().nullable().optional(),
+})
+
 export const QueryRequestSchema = z.object({
   query: z.string(),
   top_k: z.number().min(1).max(20).default(6),
@@ -103,6 +111,7 @@ export type PresignRequest = z.infer<typeof PresignRequestSchema>
 export type PresignResponse = z.infer<typeof PresignResponseSchema>
 export type IngestRequest = z.infer<typeof IngestRequestSchema>
 export type IngestResponse = z.infer<typeof IngestResponseSchema>
+export type DocumentStatusResponse = z.infer<typeof DocumentStatusResponseSchema>
 export type QueryRequest = z.infer<typeof QueryRequestSchema>
 export type QueryResponse = z.infer<typeof QueryResponseSchema>
 export type Citation = z.infer<typeof CitationSchema>
@@ -215,6 +224,12 @@ class ApiClient {
       // Store XHR for potential cancellation (component can access via ref)
       ;(this as any)._currentUploadXHR = xhr
     })
+  }
+
+  // Poll background processing status for an uploaded document
+  async getUploadStatus(docId: string): Promise<DocumentStatusResponse> {
+    const response = await this.request<DocumentStatusResponse>(`/v1/upload/${docId}/status`)
+    return DocumentStatusResponseSchema.parse(response)
   }
 
   // Presign upload - try GET first, fallback to POST (kept for backwards compatibility)

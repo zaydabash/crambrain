@@ -90,9 +90,17 @@ class IngestRequest(BaseModel):
 class IngestResponse(BaseModel):
     """Response after document ingestion"""
     doc_id: str = Field(..., description="Document ID")
-    pages: int = Field(..., description="Number of pages processed")
-    chunks: int = Field(..., description="Number of chunks created")
+    pages: int = Field(0, description="Number of pages processed")
+    chunks: int = Field(0, description="Number of chunks created")
     status: str = Field(..., description="Processing status")
+
+class DocumentStatusResponse(BaseModel):
+    """Background processing status for an uploaded document"""
+    doc_id: str = Field(..., description="Document ID")
+    status: str = Field(..., description="Processing status: processing, ready, or failed")
+    pages: Optional[int] = Field(None, description="Number of pages processed")
+    chunks: Optional[int] = Field(None, description="Number of chunks created")
+    error: Optional[str] = Field(None, description="Error message if processing failed")
 
 class QueryRequest(BaseModel):
     """Query request with enhanced options"""

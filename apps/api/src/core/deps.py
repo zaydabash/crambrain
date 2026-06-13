@@ -3,7 +3,7 @@ Dependency injection for FastAPI
 """
 
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional
 from fastapi import HTTPException, Request
 from core.settings import get_settings
 from rag.store import ChromaStore
@@ -24,6 +24,14 @@ answer_service: Optional[AnswerService] = None
 quiz_service: Optional[QuizService] = None
 s3_service: Optional[S3Service] = None
 pdf_processor: Optional[PDFProcessor] = None
+
+# In-memory tracking of background document processing status.
+# Maps doc_id -> {"status": "processing" | "ready" | "failed", "pages": int, "chunks": int, "error": str}
+document_status: Dict[str, Dict[str, Any]] = {}
+
+def get_document_status_store() -> Dict[str, Dict[str, Any]]:
+    """Get the document processing status store"""
+    return document_status
 
 def get_chroma_store() -> ChromaStore:
     """Get Chroma store instance"""

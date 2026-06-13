@@ -1,13 +1,25 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query, Body
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, UploadFile, File, Query, Body
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Any, Dict, Optional
 from datetime import datetime
 import logging
 
-from core.deps import get_s3_service, get_pdf_processor, get_chroma_store, get_embedding_service
+from core.deps import (
+    get_s3_service,
+    get_pdf_processor,
+    get_chroma_store,
+    get_embedding_service,
+    get_document_status_store,
+)
 from core.settings import get_settings
 from utils.id import generate_doc_id
-from models.types import PresignRequest, PresignResponse, IngestResponse, IngestRequest
+from models.types import (
+    PresignRequest,
+    PresignResponse,
+    IngestResponse,
+    IngestRequest,
+    DocumentStatusResponse,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -62,79 +74,109 @@ async def create_presigned_upload_post(
         logger.error(f"Failed to generate presigned URL: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {str(e)}")
 
-@router.post("/upload", response_model=IngestResponse)
-async def upload_and_ingest_document(
-    file: UploadFile = File(..., description="PDF file to upload"),
-    s3_service = Depends(get_s3_service),
-    pdf_processor = Depends(get_pdf_processor),
-    chroma_store = Depends(get_chroma_store),
-    embedding_service = Depends(get_embedding_service)
-):
-    """Upload file directly to backend, then to B2, then ingest - avoids CORS issues"""
+async def _process_uploaded_pdf(
+    doc_id: str,
+    file_content: bytes,
+    filename: str,
+    s3_service,
+    pdf_processor,
+    chroma_store,
+    embedding_service,
+    status_store: Dict[str, Any],
+) -> None:
+    """Background task: upload to B2, parse the PDF, embed chunks, and store in Chroma."""
     try:
-        settings = get_settings()
-
-        # Validate file type
-        if not file.filename.endswith('.pdf'):
-            raise HTTPException(status_code=400, detail="Only PDF files are supported")
-
-        if file.content_type and file.content_type not in settings.allowed_mime_types:
-            raise HTTPException(status_code=400, detail=f"Unsupported content type: {file.content_type}")
-
-        logger.info(f"Starting direct upload for file: {file.filename}")
-
-        # Read file content
-        file_content = await file.read()
-        if len(file_content) == 0:
-            raise HTTPException(status_code=400, detail="File is empty")
-
-        max_bytes = settings.max_file_mb * 1024 * 1024
-        if len(file_content) > max_bytes:
-            raise HTTPException(status_code=400, detail=f"File exceeds maximum size of {settings.max_file_mb}MB")
-
-        # Generate unique file key
-        file_id = generate_doc_id()
-        file_key = f"docs/{file_id}.pdf"
-        
-        # Upload to B2
+        file_key = f"docs/{doc_id}.pdf"
         file_url = await s3_service.upload_file(file_content, file_key, 'application/pdf')
         logger.info(f"Uploaded file to B2: {file_url}")
-        
-        # Process PDF with strict page boundaries
-        pages_data = await pdf_processor.process_pdf(file_content, file.filename or "uploaded.pdf")
-        
-        # Generate embeddings for each chunk
-        all_chunks = []
-        for page_data in pages_data:
-            for chunk in page_data.chunks:
-                chunk.embedding = await embedding_service.embed_text(chunk.text)
-                all_chunks.append(chunk)
-        
-        # Store in Chroma with metadata
-        doc_id = generate_doc_id()
-        embeddings = [chunk.embedding for chunk in all_chunks]
+
+        pages_data = await pdf_processor.process_pdf(file_content, filename)
+
+        # Generate embeddings for all chunks in a single batched call
+        all_chunks = [chunk for page_data in pages_data for chunk in page_data.chunks]
+        if all_chunks:
+            embeddings = await embedding_service.embed_texts([chunk.text for chunk in all_chunks])
+            for chunk, embedding in zip(all_chunks, embeddings):
+                chunk.embedding = embedding
+        else:
+            embeddings = []
+
         await chroma_store.store_chunks(doc_id, all_chunks, embeddings, {
-            "original_name": file.filename or "uploaded.pdf",
+            "original_name": filename,
             "file_url": file_url,
             "pages": len(pages_data),
             "chunks": len(all_chunks),
             "created_at": datetime.utcnow().isoformat()
         })
-        
-        logger.info(f"Successfully uploaded and ingested document {doc_id}: {len(pages_data)} pages, {len(all_chunks)} chunks")
-        
-        return IngestResponse(
-            doc_id=doc_id,
-            pages=len(pages_data),
-            chunks=len(all_chunks),
-            status="ready"
-        )
-        
-    except HTTPException:
-        raise
+
+        status_store[doc_id] = {"status": "ready", "pages": len(pages_data), "chunks": len(all_chunks)}
+        logger.info(f"Successfully processed document {doc_id}: {len(pages_data)} pages, {len(all_chunks)} chunks")
+
     except Exception as e:
-        logger.error(f"Failed to upload and ingest document: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to upload and ingest document: {str(e)}")
+        logger.error(f"Failed to process uploaded document {doc_id}: {e}")
+        status_store[doc_id] = {"status": "failed", "error": str(e)}
+
+@router.post("/upload", response_model=IngestResponse)
+async def upload_and_ingest_document(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(..., description="PDF file to upload"),
+    s3_service = Depends(get_s3_service),
+    pdf_processor = Depends(get_pdf_processor),
+    chroma_store = Depends(get_chroma_store),
+    embedding_service = Depends(get_embedding_service),
+    status_store = Depends(get_document_status_store),
+):
+    """Accept a PDF upload and process it (B2 upload, parsing, embedding, storage) in the background"""
+    settings = get_settings()
+
+    # Validate file type
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    if file.content_type and file.content_type not in settings.allowed_mime_types:
+        raise HTTPException(status_code=400, detail=f"Unsupported content type: {file.content_type}")
+
+    logger.info(f"Starting direct upload for file: {file.filename}")
+
+    # Read file content
+    file_content = await file.read()
+    if len(file_content) == 0:
+        raise HTTPException(status_code=400, detail="File is empty")
+
+    max_bytes = settings.max_file_mb * 1024 * 1024
+    if len(file_content) > max_bytes:
+        raise HTTPException(status_code=400, detail=f"File exceeds maximum size of {settings.max_file_mb}MB")
+
+    doc_id = generate_doc_id()
+    status_store[doc_id] = {"status": "processing"}
+
+    background_tasks.add_task(
+        _process_uploaded_pdf,
+        doc_id,
+        file_content,
+        file.filename or "uploaded.pdf",
+        s3_service,
+        pdf_processor,
+        chroma_store,
+        embedding_service,
+        status_store,
+    )
+
+    logger.info(f"Accepted upload for {file.filename}, processing document {doc_id} in background")
+
+    return IngestResponse(doc_id=doc_id, status="processing")
+
+@router.get("/upload/{doc_id}/status", response_model=DocumentStatusResponse)
+async def get_upload_status(
+    doc_id: str,
+    status_store = Depends(get_document_status_store),
+):
+    """Check the background processing status for an uploaded document"""
+    status = status_store.get(doc_id)
+    if status is None:
+        raise HTTPException(status_code=404, detail="Unknown document ID")
+
+    return DocumentStatusResponse(doc_id=doc_id, **status)
 
 @router.post("/ingest", response_model=IngestResponse)
 async def ingest_document(
@@ -154,16 +196,17 @@ async def ingest_document(
         # Process PDF with strict page boundaries
         pages_data = await pdf_processor.process_pdf(pdf_content, request.original_name)
         
-        # Generate embeddings for each chunk
-        all_chunks = []
-        for page_data in pages_data:
-            for chunk in page_data.chunks:
-                chunk.embedding = await embedding_service.embed_text(chunk.text)
-                all_chunks.append(chunk)
-        
+        # Generate embeddings for all chunks in a single batched call
+        all_chunks = [chunk for page_data in pages_data for chunk in page_data.chunks]
+        if all_chunks:
+            embeddings = await embedding_service.embed_texts([chunk.text for chunk in all_chunks])
+            for chunk, embedding in zip(all_chunks, embeddings):
+                chunk.embedding = embedding
+        else:
+            embeddings = []
+
         # Store in Chroma with metadata
         doc_id = generate_doc_id()
-        embeddings = [chunk.embedding for chunk in all_chunks]
         await chroma_store.store_chunks(doc_id, all_chunks, embeddings, {
             "original_name": request.original_name,
             "file_url": request.file_url,

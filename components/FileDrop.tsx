@@ -1,14 +1,15 @@
 'use client'
 
-import React, { useCallback, useState, useRef } from 'react'
+import React, { useCallback, useState, useRef, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, FileText, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn, formatFileSize, isValidPdf } from '@/lib/utils'
 import { apiClient } from '@/lib/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://crambrain-api-v2.onrender.com'
+const STATUS_POLL_INTERVAL_MS = 3000
 
 interface FileDropProps {
   onUploadComplete: (docId: string, filename: string) => void
@@ -18,15 +19,53 @@ interface FileDropProps {
 export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [processing, setProcessing] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const xhrRef = useRef<XMLHttpRequest | null>(null)
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const stopPolling = () => {
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current)
+      pollTimeoutRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => stopPolling()
+  }, [])
+
+  const pollUploadStatus = useCallback((docId: string, filename: string) => {
+    const poll = async () => {
+      try {
+        const result = await apiClient.getUploadStatus(docId)
+        if (result.status === 'ready') {
+          setProcessing(false)
+          onUploadComplete(docId, filename)
+          return
+        }
+        if (result.status === 'failed') {
+          setProcessing(false)
+          onError(result.error || 'Failed to process document')
+          return
+        }
+        pollTimeoutRef.current = setTimeout(poll, STATUS_POLL_INTERVAL_MS)
+      } catch (error) {
+        setProcessing(false)
+        onError(error instanceof Error ? error.message : 'Failed to check processing status')
+      }
+    }
+    pollTimeoutRef.current = setTimeout(poll, STATUS_POLL_INTERVAL_MS)
+  }, [onUploadComplete, onError])
 
   const handleCancel = () => {
     if (xhrRef.current) {
       xhrRef.current.abort()
       xhrRef.current = null
     }
+    stopPolling()
     setUploading(false)
+    setProcessing(false)
     setUploadProgress(0)
     onError('Upload canceled')
   }
@@ -70,18 +109,31 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
       
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
+          let response: { doc_id: string; status: string }
           try {
-            const response = JSON.parse(xhr.responseText)
-            setUploadProgress(100)
-            onUploadComplete(response.doc_id, file.name)
+            response = JSON.parse(xhr.responseText)
           } catch (error) {
             console.error('Failed to parse response:', error)
             onError('Failed to process upload response')
-          } finally {
             setUploading(false)
             setUploadProgress(0)
             xhrRef.current = null
+            return
           }
+
+          setUploadProgress(100)
+          xhrRef.current = null
+
+          if (response.status === 'processing') {
+            setUploading(false)
+            setProcessing(true)
+            pollUploadStatus(response.doc_id, file.name)
+            return
+          }
+
+          setUploading(false)
+          setUploadProgress(0)
+          onUploadComplete(response.doc_id, file.name)
         } else {
           try {
             const error = JSON.parse(xhr.responseText)
@@ -106,7 +158,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
       setUploadProgress(0)
       xhrRef.current = null
     }
-  }, [onUploadComplete, onError, xhrRef])
+  }, [onUploadComplete, onError, pollUploadStatus])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -114,7 +166,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
       'application/pdf': ['.pdf'],
     },
     multiple: false,
-    disabled: uploading,
+    disabled: uploading || processing,
   })
 
   const removeFile = () => {
@@ -134,7 +186,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
                 isDragActive
                   ? "border-primary bg-primary/5"
                   : "border-muted-foreground/25 hover:border-primary/50",
-                uploading && "pointer-events-none opacity-50"
+                (uploading || processing) && "pointer-events-none opacity-50"
               )}
             >
               <input data-testid="file-input" aria-label="file input" {...getInputProps()} />
@@ -167,7 +219,7 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
                   variant="ghost"
                   size="icon"
                   onClick={removeFile}
-                  disabled={uploading}
+                  disabled={uploading || processing}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -195,6 +247,23 @@ export function FileDrop({ onUploadComplete, onError }: FileDropProps) {
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
+                </div>
+              )}
+
+              {processing && (
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Processing document... this can take a minute for larger files</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancel}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Cancel
+                  </Button>
                 </div>
               )}
             </div>
